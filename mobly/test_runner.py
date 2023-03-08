@@ -58,7 +58,7 @@ def main(argv=None):
   # Find the test class in the test script.
   test_class = _find_test_class()
   if args.list_tests:
-    _print_test_names(test_class)
+    _print_test_names(test_class, args.tests)
     sys.exit(0)
   # Load test config file.
   test_configs = config_parser.load_test_config_file(args.config, args.test_bed)
@@ -158,7 +158,7 @@ def _find_test_class():
     sys.exit(1)
 
 
-def _print_test_names(test_class):
+def _print_test_names(test_class, test_names=None):
   """Prints the names of all the tests in a test module.
 
   If the module has generated tests defined based on controller info, this
@@ -168,14 +168,15 @@ def _print_test_names(test_class):
     test_class: module, the test module to print names from.
   """
   cls = test_class(config_parser.TestRunConfig())
-  test_names = []
-  try:
-    cls.setup_generated_tests()
-    test_names = cls.get_existing_test_names()
-  except Exception:
-    logging.exception('Failed to retrieve generated tests.')
-  finally:
-    cls._controller_manager.unregister_controllers()
+  if not test_names:
+    test_names = []
+    try:
+      cls.setup_generated_tests()
+      test_names = cls.get_existing_test_names()
+    except Exception:
+      logging.exception('Failed to retrieve generated tests.')
+    finally:
+      cls._controller_manager.unregister_controllers()
   print('==========> %s <==========' % cls.TAG)
   for name in test_names:
     print(name)
